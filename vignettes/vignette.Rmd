@@ -105,7 +105,7 @@ The idea behind Trex is to combine TCR cdr3 amino acid information with phenotyp
 
 ## maTrex Function
 
-Trex has 2 major functions - the first being ```maTrex()```, which is the backbone of the algorithm and returns the encoded values based on the selection of variables. Unlike ```runTrex()``` below, ```maTrex()``` does not filter the input for only T cells with attached TCR data. In addition, ```maTrex()``` is compatible with the list output from the ```combineTCR()``` function from the [scRepertoire](https://github.com/ncborcherding/scRepertoire) R package, while ```runTrex()``` must be performed on a single-cell object.
+Trex has 2 major functions - the first being ```maTrex()```, which is the backbone of the algorithm and returns the encoded values based on the selection of variables. Unlike ```runTrex()``` below, ```maTrex()``` does not filter the input for only T cells with attached TCR data. In addition, ```maTrex()``` is compatible with the list output from the ```combineTCR()``` function from the [scRepertoire](https://github.com/BorchLab/scRepertoire) R package, while ```runTrex()``` must be performed on a single-cell object.
 
 **chains**  
 * "TRA" for TCR Alpha Chain
@@ -303,7 +303,7 @@ DimPlot(trex_example,
 ***
 # Conclusion
 
-This has been a general overview of the capabilities of Trex for incorporating TCR information into the embedding space of single-cell data. If you have any questions, comments, or suggestions, feel free to visit the [GitHub repository](https://github.com/ncborcherding/Trex).
+This has been a general overview of the capabilities of Trex for incorporating TCR information into the embedding space of single-cell data. If you have any questions, comments, or suggestions, feel free to visit the [GitHub repository](https://github.com/BorchLab/Trex).
 
 ## Session Info
 

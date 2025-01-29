@@ -9,20 +9,20 @@ Using TCR sequences for sequence embedding
 
 ## Introduction
 
-<img align="right" src="https://github.com/ncborcherding/Trex/blob/main/www/trex_hex.png" width="305" height="352">
+<img align="right" src="https://github.com/BorchLab/Trex/blob/main/www/trex_hex.png" width="305" height="352">
 
 Single-cell sequencing is now a integral tool in the field of immunology and oncology that allows researchers to couple RNA quantification and other modalities, 
-like immune cell receptor profiling at the level of an individual cell. Towards this end, we developed the [scRepertoire](https://github.com/ncborcherding/scRepertoire) 
+like immune cell receptor profiling at the level of an individual cell. Towards this end, we developed the [scRepertoire](https://github.com/BorchLab/scRepertoire) 
 R package to assist in the interaction of immune receptor and gene expression sequencing. However, utilization of clonal indices for more complex analyses are still lacking, specifically in using clonality in embedding of single-cells. To this end, we developed an R package that uses deep learning to vectorize TCR sequences using order or translating the sequence into amino acid properties.
 
 ### TCRex
 If you are looking for the (very cool) TCR-epitope prediction algorithm **TCRex**, check out their website [here](https://tcrex.biodatamining.be/).
 
-<img align="center" src="https://github.com/ncborcherding/Trex/blob/dev/www/graphicalAbstract.png">
+<img align="center" src="https://github.com/BorchLab/Trex/blob/dev/www/graphicalAbstract.png">
 
 # System requirements 
 
-Trex has been tested on R versions >= 4.0. Please consult the DESCRIPTION file for more details on required R packages - it is specifically designed to work with single-cell objects that have had TCRs added using [scRepertoire](https://github.com/ncborcherding/scRepertoire). Trex has been tested on OS X and Windows platforms.
+Trex has been tested on R versions >= 4.0. Please consult the DESCRIPTION file for more details on required R packages - it is specifically designed to work with single-cell objects that have had TCRs added using [scRepertoire](https://github.com/BorchLab/scRepertoire). Trex has been tested on OS X and Windows platforms.
 
 **keras** is necessary to use the autoencoder function (this includes the set up of the tensorflow environment in R):
 
@@ -41,7 +41,7 @@ install_keras()
 An alternative to this approach above (especially if you want to avoid conda) is to use reticulate to generate a virtualenv, using ```virtualenv_create()``` and subsequently installing the above python packages using ```virtualenv_install()```.
 
 # Model Information 
-<img align="center" src="https://github.com/ncborcherding/Trex/blob/dev/www/training_info.png">
+<img align="center" src="https://github.com/BorchLab/Trex/blob/dev/www/training_info.png">
 
 Each of the models available in Trex follow similar architecture with depth and width of input layers, epochs, batch size, and early stopping calls. The major difference is the size of the input layer, depending on the method chosen with **encoder.input**. 
 
@@ -50,7 +50,7 @@ Each of the models available in Trex follow similar architecture with depth and 
 To run Trex, open R and install Trex from github: 
 
 ```r
-devtools::install_github("ncborcherding/Trex")
+devtools::install_github("BorchLab/Trex")
 ```
 # Usage/Demos
 
@@ -116,15 +116,15 @@ seuratObj <- RunUMAP(seuratObj,
 ***
 ## Bug Reports/New Features
 
-#### If you run into any issues or bugs please submit a [GitHub issue](https://github.com/ncborcherding/Trex/issues) with details of the issue.
+#### If you run into any issues or bugs please submit a [GitHub issue](https://github.com/BorchLab/Trex/issues) with details of the issue.
 
 - If possible please include a [reproducible example](https://reprex.tidyverse.org/). 
 Alternatively, an example with the internal **trex_example** would 
 be extremely helpful.
 
-#### Any requests for new features or enhancements can also be submitted as [GitHub issues](https://github.com/ncborcherding/Trex/issues).
+#### Any requests for new features or enhancements can also be submitted as [GitHub issues](https://github.com/BorchLab/Trex/issues).
 
-#### [Pull Requests](https://github.com/ncborcherding/Trex/pulls) are welcome for bug fixes, new features, or enhancements.
+#### [Pull Requests](https://github.com/BorchLab/Trex/pulls) are welcome for bug fixes, new features, or enhancements.
 
 ## Citation
 If using the Trex package, please cite our [manuscript](https://pubmed.ncbi.nlm.nih.gov/39164479/). This is also a good place to find more information about the models.
