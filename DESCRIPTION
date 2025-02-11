@@ -13,8 +13,10 @@ LazyDataCompression: xz
 RoxygenNote: 7.3.2
 biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation, Sequencing
 Depends: 
-	R (>= 4.0)
-Imports: stringr, 
+	R (>= 4.0),
+	scRepertoire
+Imports:
+	stringr, 
 	SeuratObject,
 	SingleCellExperiment,
 	rlang,
@@ -24,7 +26,7 @@ Imports: stringr,
 	Matrix, 
 	matrixStats,
 	SummarizedExperiment,
-        stats,
+    stats,
 	stringdist, 
 	utils
 Suggests: 
@@ -38,8 +40,8 @@ Suggests:
 	patchwork,
 	ggplot2,
 	spelling,
-        testthat (>= 3.0.0)
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Language: en-US
-URL: https://github.com/ncborcherding/Trex/
-BugReports: https://github.com/ncborcherding/Trex/issues
+URL: https://github.com/BorchLab/Trex/
+BugReports: https://github.com/BorchLab/Trex/issues

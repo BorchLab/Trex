@@ -4,7 +4,8 @@ CHANGES IN VERSION 0.99.12
 * Incorporating immApex Usage
 * Update ```CoNGAfy()``` to support all versions of Seurat
 * Update trex_example to Seurat v5
-* Updated ```quietTCRgenes()``` to used VariableFeatures() call
+* Add `scRepertoire` as a dependency
+* Updated ```quietTCRgenes()``` to used VariableFeatures() call, and moved definition to `scRepertoire`
 
 
 CHANGES IN VERSION 0.99.11
