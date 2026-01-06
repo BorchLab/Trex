@@ -1,26 +1,56 @@
 ---
-title: Welcome to Jurassic Park - A tour of Trex.
-author: 
+title: "Getting Started with Trex"
+author:
 - name: Nick Borcherding
   email: ncborch@gmail.com
   affiliation: Washington University in St. Louis, School of Medicine, St. Louis, MO, USA
-date: "June 26th, 2023"
+date: "`r Sys.Date()`"
 output:
   BiocStyle::html_document:
     toc_float: true
 package: Trex
 vignette: >
   %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{Running from Trex}
+  %\VignetteIndexEntry{Getting Started with Trex}
   %\usepackage[UTF-8]{inputenc}
 ---
 
 ```{r, echo=FALSE, results="hide", message=FALSE}
-knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(error = FALSE, message = FALSE, warning = FALSE)
 library(BiocStyle)
 ```
 
 # Introduction
+
+Single-cell sequencing is now an integral tool in the field of immunology and
+oncology that allows researchers to couple RNA quantification and other
+modalities, like immune cell receptor profiling at the level of an individual
+cell. Towards this end, we developed the
+[scRepertoire](https://github.com/BorchLab/scRepertoire) R package to assist in
+the interaction of immune receptor and gene expression sequencing.
+However, utilization of clonal indices for more complex analyses are still
+lacking, specifically in using clonality in embedding of single-cells. To this
+end, we developed Trex - an R package that uses deep learning to vectorize TCR
+sequences using sequence order or translating the sequence into amino acid
+properties.
+
+## Installation
+
+Trex is available through Bioconductor:
+
+```{r, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
+BiocManager::install("Trex")
+```
+
+## Model Downloads
+
+By default, Trex will automatically download deep learning models from a
+[Zenodo repository](https://zenodo.org/records/14636032) and cache them locally
+on first use. The cache location follows platform conventions using
+`tools::R_user_dir("Trex", which = "cache")`.
 
 ## Load Libraries
 
@@ -32,64 +62,19 @@ suppressMessages(library(viridis))
 suppressMessages(library(patchwork))
 ```
 
+# The Data Set
 
-## The Data Set
+To demonstrate Trex's capabilities, the example data is derived from
+[GSE167118](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE167118) - a
+cohort of CITE-seq data from severe COVID-19 patients. The
+[corresponding manuscript](https://pubmed.ncbi.nlm.nih.gov/33622974/) is
+excellent. The built-in data (`trex_example`) is a random sample of single
+cells from patient 17.
 
-To show the multiple options of Trex, the example data is derived from [GSE167118](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE167118) - a cohort of CITE-seq data derived from severe COVID-19 patients. The [corresponding manuscript](https://pubmed.ncbi.nlm.nih.gov/33622974/) is excellent. The data example built into the package (trex_example) is derived from randomly sampling the single-cells from patient 17. 
-
-This is a standard workflow based on the [WNN](https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis.html) Seurat process. However, Trex will work for Bioconductor/Single-Cell Experiment workflows as well. The major exception is the addition of ```quietTCRgenes()```, which removed T cell receptor genes from the variable gene list used for ```runPCA()```. In addition, the final 2 rows of the ADT assay are removed, as they are antibodies for specific TCRs. This prevents the weighting of the embedding based on both genes and clonotype information. Removing T cell receptor genes is also a common practice before dimensional reduction. 
-
-
-```{r, eval=FALSE}
-suppressMessages(library(scRepertoire))
-##################################
-#scRNA/ADT loading and processing
-#################################
-tmp <-  Read10X("~/Patient17/filtered_feature_bc_matrix")
-
-Pt17 <- CreateSeuratObject(counts = tmp$`Gene Expression`)
-#Removing TCR-specific antibody
-adt_assay <- CreateAssayObject(counts = tmp$`Antibody Capture`[1:37,])
-Pt17[["ADT"]] <- adt_assay
-Pt17 <- subset(Pt17, subset = nFeature_RNA > 100) 
-Pt17  <- RenameCells(object = Pt17 , new.names = paste0("Pt17_", rownames(Pt17[[]])))
-Pt17[["mito.genes"]] <- PercentageFeatureSet(Pt17, pattern = "^MT-")
-    
-#Filtering step
-standev <- sd(log(Pt17$nFeature_RNA))*2.5 #cutting off above standard deviation of 2.5
-mean <- mean(log(Pt17$nFeature_RNA))
-cut <- round(exp(standev+mean))
-Pt17 <- subset(Pt17, subset = mito.genes < 10 & nFeature_RNA < cut)
-
-#Processing RNA
-DefaultAssay(Pt17) <- 'RNA'
-Pt17 <- NormalizeData(Pt17) %>% FindVariableFeatures() %>% 
-  quietTCRgenes() %>% ScaleData() %>% RunPCA(verbose = FALSE)
-
-#Processing ADT
-DefaultAssay(Pt17) <- 'ADT'
-VariableFeatures(Pt17) <- rownames(Pt17[["ADT"]])
-Pt17 <- NormalizeData(Pt17, normalization.method = 'CLR', margin = 2) %>% 
-  ScaleData() %>% RunPCA(reduction.name = 'apca')
-
-
-##################################
-#Processing and Adding Contig Info
-##################################
-
-contigs <- read.csv("~/Patient17/filtered_contig_annotations.csv")
-clones <- combineTCR(contigs, samples = "Pt17", cells = "T-AB", filterMulti = TRUE, removeNA = TRUE)
-Pt17 <- combineExpression(clones, Pt17, cloneCall="aa")
-saveRDS(Pt17, file = "Trex_FullExample.rds")
-
-###################################
-#Making Example Data Set for Trex
-#################################
-meta <- Pt17[[]]
-meta <- meta[sample(nrow(meta), nrow(meta)*0.1),]
-trex_example <- subset(Pt17, cells = rownames(meta))
-save(trex_example, file = "trex_example.rda", compress = "xz")
-```
+This vignette follows a standard workflow based on the
+[WNN](https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis.html)
+Seurat process. Trex also works with Bioconductor/SingleCellExperiment
+workflows.
 
 ## Loading the Data
 
@@ -97,136 +82,183 @@ save(trex_example, file = "trex_example.rda", compress = "xz")
 data("trex_example")
 ```
 
-****************
-
 # Running Trex
 
-The idea behind Trex is to combine TCR cdr3 amino acid information with phenotypic RNA/protein data to direct the use of single-cell sequencing towards antigen-specific discoveries.  This is a growing field - specifically [TESSA](https://github.com/jcao89757/TESSA) uses amino acid characteristics and autoencoder as a means to get a dimensional reduction. Another option is [CoNGA](https://github.com/phbradley/conga), which produces an embedding using TCR and RNA. Trex was designed to make a customizable approach to this combined approach using R.
+The idea behind Trex is to combine TCR CDR3 amino acid information with
+phenotypic RNA/protein data to direct single-cell sequencing towards
+antigen-specific discoveries. This is a growing field - specifically
+[TESSA](https://github.com/jcao89757/TESSA) uses amino acid characteristics and
+autoencoders as a means to get a dimensional reduction. Another option is
+[CoNGA](https://github.com/phbradley/conga), which produces an embedding using
+TCR and RNA. Trex was designed to make a customizable approach to this combined
+embedding using R.
 
-## maTrex Function
+## The maTrex Function
 
-Trex has 2 major functions - the first being ```maTrex()```, which is the backbone of the algorithm and returns the encoded values based on the selection of variables. Unlike ```runTrex()``` below, ```maTrex()``` does not filter the input for only T cells with attached TCR data. In addition, ```maTrex()``` is compatible with the list output from the ```combineTCR()``` function from the [scRepertoire](https://github.com/BorchLab/scRepertoire) R package, while ```runTrex()``` must be performed on a single-cell object.
+Trex has two core functions - the first being `maTrex()`, which is the
+backbone of the algorithm and returns the encoded values based on the selection
+of variables. Unlike `runTrex()` below, `maTrex()` does not filter the input
+for only T cells with attached TCR data. In addition, `maTrex()` is compatible
+with the list output from the `combineTCR()` function from the
+[scRepertoire](https://github.com/BorchLab/scRepertoire) R package, while
+`runTrex()` must be performed on a single-cell object.
 
-**chains**  
-* "TRA" for TCR Alpha Chain
-* "TRB" for TCR Beta Chain
+### Parameters
 
-**method**  
-* "encoder" for a convolution neural network (CNN) based encoding. 
-* "geometric" for a geometric transformation  
+**chains**
+TCR chain to use for encoding:
 
-**encoder.model**  
-* "VAE" for a variational autoencoder  
-* "AE" for a traditional autoencoder  
+* `"TRA"`: T cell receptor alpha chain
+* `"TRB"`: T cell receptor beta chain
 
-**encoder.input**  
-* "AF" to use Atchley factors  
-* "KF" to use Kidera factors  
-* "both" to use both  
-* "OHE" for a One Hot Autoencoder
+**method**
+Encoding method to use:
 
-**theta**  
-If choosing the geometric transformation, what value of theta to use (default is pi)
+* `"encoder"`: Deep learning autoencoders for sequence embedding
+* `"geometric"`: Geometric transformation based on BLOSUM62 substitution matrix
+
+**encoder.model**
+Model architecture when `method = "encoder"`:
+
+* `"VAE"`: Variational autoencoder
+* `"AE"`: Dense autoencoder
+
+**encoder.input**
+Input encoding when `method = "encoder"`:
+
+* `"AF"`: Atchley factors (5 physicochemical properties)
+* `"KF"`: Kidera factors (10 physicochemical properties)
+* `"OHE"`: One-hot encoding (21 dimensions per position)
+
+**theta**
+Rotation angle in radians for geometric transformation when
+`method = "geometric"`. Default is `pi`.
+
+### Examples
 
 ```{r}
-Trex_vectors <- maTrex(trex_example, 
-                       chains = "TRA",
-                       encoder.model = "VAE", 
-                       encoder.input = "AF")
+Trex_vectors <- maTrex(trex_example,
+    chains = "TRA",
+    method = "encoder",
+    encoder.model = "VAE",
+    encoder.input = "AF"
+)
 
-ggplot(data = as.data.frame(Trex_vectors), aes(Trex_1, Trex_2)) + 
-  geom_point() + 
-  theme_classic()
+ggplot(data = as.data.frame(Trex_vectors), aes(Trex_1, Trex_2)) +
+    geom_point() +
+    theme_classic()
 
-Trex_vectors2 <- maTrex(trex_example, 
-                       chains = "TRB",
-                       method = "geometric",
-                       theta = pi)
+Trex_vectors2 <- maTrex(trex_example,
+    chains = "TRB",
+    method = "geometric",
+    theta = pi
+)
 
-ggplot(as.data.frame(Trex_vectors2), aes(x = Trex_1, y = Trex_2)) + 
-  geom_point() + 
-  theme_classic()
+ggplot(as.data.frame(Trex_vectors2), aes(x = Trex_1, y = Trex_2)) +
+    geom_point() +
+    theme_classic()
 ```
 
+## The runTrex Function
 
-## runTrex
-
-Additionally, ```runTrex()``` can be used to append the Seurat or Single-cell Experiment object with the Trex vectors and allow for further analysis. Importantly, ```runTrex()``` will remove single cells that do not have recovered TCR data in the metadata of the object. 
+The `runTrex()` function appends the Seurat or SingleCellExperiment object with
+the Trex vectors and allows for further analysis. Importantly, `runTrex()` will
+remove single cells that do not have recovered TCR data in the metadata of the
+object.
 
 ```{r}
-trex_example <- runTrex(trex_example, 
-                    chains = "TRB",
-                    encoder.model = "VAE", 
-                    encoder.input = "KF",
-                    reduction.name = "Trex.KF")
+trex_example <- runTrex(trex_example,
+    chains = "TRB",
+    method = "encoder",
+    encoder.model = "VAE",
+    encoder.input = "KF",
+    reduction.name = "Trex.KF"
+)
 ```
 
 ## Using Trex Vectors
 
-After ```runTrex()``` we have the encoded values stored under **"Trex..."**. Using the Trex reduction stored in Seurat, we can calculate the nearest neighbor and shared nearest neighbor indexes and generate a UMAP.
+After `runTrex()` we have the encoded values stored under **"Trex..."**. Using
+the Trex reduction stored in Seurat, we can calculate the nearest neighbor and
+shared nearest neighbor indexes and generate a UMAP.
 
 ```{r}
-#Generating UMAP from Trex Neighbors
-trex_example <- RunUMAP(trex_example, 
-                        reduction = "Trex.KF",
-                        dims = 1:30,
-                        reduction.name = 'Trex.umap', 
-                        reduction.key = 'trexUMAP_')
-#Trex UMAP
+# Generating UMAP from Trex Neighbors
+trex_example <- RunUMAP(trex_example,
+    reduction = "Trex.KF",
+    dims = 1:30,
+    reduction.name = "Trex.umap",
+    reduction.key = "trexUMAP_"
+)
+
+# Trex UMAP
 plot1 <- DimPlot(trex_example, reduction = "Trex.umap") + NoLegend()
-plot2 <- DimPlot(trex_example, group.by = "CTaa", reduction = "Trex.umap") + 
-  scale_color_viridis(discrete = TRUE, option = "B") + 
-  NoLegend()
+plot2 <- DimPlot(trex_example, group.by = "CTaa", reduction = "Trex.umap") +
+    scale_color_viridis(discrete = TRUE, option = "B") +
+    NoLegend()
 
 plot1 + plot2
 ```
 
-
-We now can use this in a similar way as other single-cell modalities and calculate weighted nearest neighbor (WNN). To check out more on WNN, please read the Satija's group [paper](https://pubmed.ncbi.nlm.nih.gov/34062119/). We will use the RNA, ADT protein levels, and Trex vectors for the WNN calculations. 
+We can now use this in a similar way as other single-cell modalities and
+calculate weighted nearest neighbor (WNN). To learn more about WNN, please read
+the Satija group's [paper](https://pubmed.ncbi.nlm.nih.gov/34062119/). We will
+use the RNA, ADT protein levels, and Trex vectors for the WNN calculations.
 
 ```{r}
 trex_example <- FindMultiModalNeighbors(
-  trex_example, reduction.list = list("pca", "apca", "Trex.KF"), 
-  dims.list = list(1:30, 1:20, 1:30), modality.weight.name = "RNA.weight"
+    trex_example,
+    reduction.list = list("pca", "apca", "Trex.KF"),
+    dims.list = list(1:30, 1:20, 1:30),
+    modality.weight.name = "RNA.weight"
 )
-trex_example <- RunUMAP(trex_example, 
-                        nn.name = "weighted.nn", 
-                        reduction.name = "wnn.umap", 
-                        reduction.key = "wnnUMAP_")
 
-trex_example <- FindClusters(trex_example, 
-                             graph.name = "wsnn",
-                             resolution = 0.6,
-                             algorithm = 3, 
-                             verbose = FALSE)
+trex_example <- RunUMAP(trex_example,
+    nn.name = "weighted.nn",
+    reduction.name = "wnn.umap",
+    reduction.key = "wnnUMAP_"
+)
 
-#WNN UMAP
+trex_example <- FindClusters(trex_example,
+    graph.name = "wsnn",
+    resolution = 0.6,
+    algorithm = 3,
+    verbose = FALSE
+)
+
+# WNN UMAP
 plot3 <- DimPlot(trex_example, reduction = "wnn.umap")
-plot4 <- DimPlot(trex_example, reduction = "wnn.umap", group.by = "CTaa") + 
-  scale_color_manual(values = viridis_pal(option = "B")(length(unique(trex_example$CTaa)))) + 
-  NoLegend()
+plot4 <- DimPlot(trex_example, reduction = "wnn.umap", group.by = "CTaa") +
+    scale_color_manual(values = viridis_pal(option = "B")(
+        length(unique(trex_example$CTaa))
+    )) +
+    NoLegend()
 
 plot3 + plot4
 ```
 
-## Comparing the outcome to just one modality
+## Comparing Modalities
 
-We can also look at the differences in the UMAP generated from RNA, ADT, or Trex as individual components. Remember, the clusters that we are displaying in UMAP are based on clusters defined by the weighted nearest neighbors calculated above. 
+We can also look at the differences in the UMAP generated from RNA, ADT, or
+Trex as individual components. Remember, the clusters displayed in UMAP are
+based on clusters defined by the weighted nearest neighbors calculated above.
 
 ```{r}
-trex_example <- RunUMAP(trex_example, 
-                        reduction = 'pca', 
-                        dims = 1:30, 
-                        assay = 'RNA', 
-                        reduction.name = 'rna.umap', 
-                        reduction.key = 'rnaUMAP_')
+trex_example <- RunUMAP(trex_example,
+    reduction = "pca",
+    dims = 1:30,
+    assay = "RNA",
+    reduction.name = "rna.umap",
+    reduction.key = "rnaUMAP_"
+)
 
-trex_example <- RunUMAP(trex_example, 
-                        reduction = 'apca', 
-                        dims = 1:20, 
-                        assay = 'ADT', 
-                        reduction.name = 'adt.umap', 
-                        reduction.key = 'adtUMAP_')
+trex_example <- RunUMAP(trex_example,
+    reduction = "apca",
+    dims = 1:20,
+    assay = "ADT",
+    reduction.name = "adt.umap",
+    reduction.key = "adtUMAP_"
+)
 
 plot5 <- DimPlot(trex_example, reduction = "rna.umap") + NoLegend()
 plot6 <- DimPlot(trex_example, reduction = "adt.umap") + NoLegend()
@@ -237,73 +269,110 @@ plot5 + plot6 + plot7
 
 # CoNGA Reduction
 
-Recent [work](https://pubmed.ncbi.nlm.nih.gov/34426704/) has proposed using representative cells for the characterization of clonotype and gene expression relationships. In order to generate these representative cells, either a mean expression across a clone or using the PCA dimensional space to identify a single cell that has the minimum euclidean distance across a clone. 
+Recent [work](https://pubmed.ncbi.nlm.nih.gov/34426704/) has proposed using
+representative cells for the characterization of clonotype and gene expression
+relationships. In order to generate these representative cells, either a mean
+expression across a clone or using the PCA dimensional space to identify a
+single cell that has the minimum Euclidean distance across a clone.
 
-In order to generate a single-cell object based on the CoNGA approach, Trex offers the function ```CoNGAfy()```. For **method**, select either "mean" or "dist" as described above. After performing ```CoNGAfy()```, the user can use any of the above reduction strategies. 
+In order to generate a single-cell object based on the CoNGA approach, Trex
+offers the function `CoNGAfy()`. For **method**, select either `"mean"` or
+`"dist"` as described above. After performing `CoNGAfy()`, the user can use any
+of the above reduction strategies.
 
 ```{r}
 library(dplyr, include.only = c("%>%"))
-CoNGA.seurat <- CoNGAfy(trex_example, 
-                         method = "dist")
+CoNGA.seurat <- CoNGAfy(trex_example,
+    method = "dist"
+)
 
-CoNGA.seurat <- runTrex(CoNGA.seurat, 
-                    encoder.model = "VAE", 
-                    encoder.input = "KF",
-                    reduction.name = "Trex.KF")
+CoNGA.seurat <- runTrex(CoNGA.seurat,
+    chains = "TRB",
+    method = "encoder",
+    encoder.model = "VAE",
+    encoder.input = "KF",
+    reduction.name = "Trex.KF"
+)
 
 CoNGA.seurat <- CoNGA.seurat %>%
-                  FindNeighbors(reduction = "Trex.KF") %>%
-                  FindClusters(algorithm = 3, resolution = 0.9)
+    FindNeighbors(reduction = "Trex.KF") %>%
+    FindClusters(algorithm = 3, resolution = 0.9)
 
-CoNGA.seurat <- RunUMAP(CoNGA.seurat, 
-                     reduction = "Trex.KF", 
-                     dims = 1:20, 
-                     reduction.name = 'Trex.umap', 
-                     reduction.key = 'trexUMAP_')
+CoNGA.seurat <- RunUMAP(CoNGA.seurat,
+    reduction = "Trex.KF",
+    dims = 1:20,
+    reduction.name = "Trex.umap",
+    reduction.key = "trexUMAP_"
+)
 
 DimPlot(CoNGA.seurat, reduction = "Trex.umap") + NoLegend()
 ```
 
-# Annotating possible epitopes
+# Annotating Epitopes
 
-Towards find epitope relationships, Trex has a built in data base of TCRA and TCRB sequences associated with epitopes. To append the database to the single-cell object (either before or after ```CoNGAfy()```), you can use ```annotateDB()```. 
+To find epitope relationships, Trex has a built-in database of TRA and TRB
+sequences associated with epitopes. To append the database to the single-cell
+object (either before or after `CoNGAfy()`), use `annotateDB()`.
 
-The database is collated from multiple sources and represents a great deal of effort from these sources:
+The database is collated from multiple sources:
 
 1. [VDJdb](https://vdjdb.cdr3.net/) - [citation](https://pubmed.ncbi.nlm.nih.gov/28977646/)
 2. [McPAS-TCR](http://friedmanlab.weizmann.ac.il/McPAS-TCR/) - [citation](https://pubmed.ncbi.nlm.nih.gov/28481982/)
-3. [iedb](https://www.iedb.org/) - [citation](https://pubmed.ncbi.nlm.nih.gov/30357391/)
-4. [TBA](https://db.cngb.org/pird/home/) (now called PIRD) - [citation](https://pubmed.ncbi.nlm.nih.gov/31373607/)
-
+3. [IEDB](https://www.iedb.org/) - [citation](https://pubmed.ncbi.nlm.nih.gov/30357391/)
+4. [PIRD](https://db.cngb.org/pird/home/) - [citation](https://pubmed.ncbi.nlm.nih.gov/31373607/)
 
 ```{r}
-CoNGA.seurat <- annotateDB(CoNGA.seurat, 
-                           chains = "TRB")
+CoNGA.seurat <- annotateDB(CoNGA.seurat,
+    chains = "TRB"
+)
 
-DimPlot(CoNGA.seurat, 
-        reduction = "Trex.umap", 
-        group.by = "TRB_Epitope.species")
+DimPlot(CoNGA.seurat,
+    reduction = "Trex.umap",
+    group.by = "TRB_Epitope.species"
+)
 
-DimPlot(CoNGA.seurat, 
-        reduction = "Trex.umap", 
-        group.by = "TRB_Epitope.sequence")
+DimPlot(CoNGA.seurat,
+    reduction = "Trex.umap",
+    group.by = "TRB_Epitope.sequence"
+)
 ```
-Or ```annotateDB()``` can be used on the full single-cell object and examine the sequence information along the RNA-based UMAP. An added feature to the function allows the annotations to be extended to cdr3 sequences that are within defined edit distances from the reference using **edit.distance**.
+
+Or `annotateDB()` can be used on the full single-cell object and examine the
+sequence information along the RNA-based UMAP. An added feature allows the
+annotations to be extended to CDR3 sequences within defined edit distances from
+the reference using **edit.distance**.
 
 ```{r}
 trex_example <- annotateDB(trex_example,
-                        chains = "TRB", 
-                        edit.distance = 2)
+    chains = "TRB",
+    edit.distance = 2
+)
 
-DimPlot(trex_example, 
-        reduction = "wnn.umap", 
-        group.by = "TRB_Epitope.species")
+DimPlot(trex_example,
+    reduction = "wnn.umap",
+    group.by = "TRB_Epitope.species"
+)
 ```
 
-***
+# Removing TCR Genes
+
+When combining TCR-based embeddings with RNA-based embeddings using weighted
+nearest neighbors (WNN), it is important to remove TCR genes from the variable
+features before running PCA. The `quietTCRgenes()` function removes T cell
+receptor genes (matching pattern `^TR[ABDG][VDJ][^D]`) from the variable
+features in a Seurat object.
+```{r, eval=FALSE}
+# Remove TCR genes before running PCA for WNN analysis
+seurat_obj <- quietTCRgenes(seurat_obj)
+seurat_obj <- RunPCA(seurat_obj)
+```
+
 # Conclusion
 
-This has been a general overview of the capabilities of Trex for incorporating TCR information into the embedding space of single-cell data. If you have any questions, comments, or suggestions, feel free to visit the [GitHub repository](https://github.com/BorchLab/Trex).
+This has been a general overview of the capabilities of Trex for incorporating
+TCR information into the embedding space of single-cell data. If you have any
+questions, comments, or suggestions, feel free to visit the
+[GitHub repository](https://github.com/BorchLab/Trex).
 
 ## Session Info
 
