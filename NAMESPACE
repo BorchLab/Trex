@@ -3,7 +3,6 @@
 export(CoNGAfy)
 export(Trex_matrix)
 export(annotateDB)
-export(maTrex)
 export(quietTCRgenes)
 export(runTrex)
 import(basilisk)
