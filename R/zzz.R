@@ -15,8 +15,6 @@
 
     # Register global variables to avoid R CMD check NOTEs
     utils::globalVariables(c(
-        "AF.col",
-        "KF.col",
         "array_reshape",
         "is",
         "reducedDim<-",
@@ -26,7 +24,6 @@
         "get.adjacency",
         "nn",
         "data",
-        "Trex.Data",
         "Trex.database",
         "colData<-",
         "TR",
