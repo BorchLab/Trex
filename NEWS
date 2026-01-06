@@ -1,112 +1,43 @@
+CHANGES IN VERSION 0.99.0
+-------------------------
 
-CHANGES IN VERSION 0.99.12
-------------------------
-* Incorporating immApex Usage
-* Update ```CoNGAfy()``` to support all versions of Seurat
-* Update trex_example to Seurat v5
-* Updated ```quietTCRgenes()``` to used VariableFeatures() call
+NEW FEATURES
 
+* Initial Bioconductor submission
+* Implemented basilisk-based Python environment management for TensorFlow/Keras
+* Models now downloaded from Zenodo repository and cached locally
+* Full support for Seurat v5 objects
+* Integration with immApex for amino acid encoding
 
-CHANGES IN VERSION 0.99.11
-------------------------
-* Added geometric encoding using the BLOSUM62 matrix
-* Sequence input: 
-	- TRA: 905611
-	- TRB: 1276462
-* Trained classical and variational autoencoders for TRA/TRB chains
- 	- Architecture: 256-128-30-128-256
-	- Parameters: 
-		Batch Size = 64
-		Latent Dimensions = 30
-		Epochs = 100
-		Loss = Mean Squared Error
-	- Optimizers: Adam
-	- Early stopping was set to patients of 10 for minimal validation loss and restoration of best weights
-	- learn rate varied by models
-	- classical auto encoders have batch normalization layers between the dense layers. 
+INFRASTRUCTURE CHANGES
+
+* Removed direct keras/tensorflow R package dependencies
+* Added basilisk for reproducible Python environment setup
+* Models externalized to Zenodo (https://zenodo.org/records/14636032)
+* Updated minimum R version to 4.4.0
+* Improved documentation with roxygen2
+
+ENCODING METHODS
+
+* Deep learning autoencoders (VAE and AE) for TRA and TRB chains
+* Support for Atchley factors (AF), Kidera factors (KF), and One-Hot Encoding (OHE)
+* Geometric encoding using BLOSUM62 substitution matrix
+* Models trained on 905,611 TRA and 1,276,462 TRB sequences
+* Model architecture: 256-128-30-128-256 with batch normalization
+
+MAIN FUNCTIONS
+
+* maTrex() - Generate TCR embedding matrix from sequences
+* runTrex() - Integrate embeddings into Seurat/SingleCellExperiment objects
+* CoNGAfy() - Reduce data to representative cells per clonotype
+* annotateDB() - Annotate TCR sequences using curated databases
+* quietTCRgenes() - Remove TCR genes from variable features
+
+DATABASE
+
+* TCR-epitope annotation database compiled from VDJdb, McPAS-TCR, IEDB, and PIRD
+* Support for edit distance-based fuzzy matching
 
 DEPRECATED AND DEFUNCT
 
-* Deprecate clonalCommunity() 
-
-
-CHANGES IN VERSION 0.99.10
-------------------------
-- fixed issuer with TRB OHE encoder returning NaN or zero values
-- "both" call now pulls all AF/KF without error
-
-CHANGES IN VERSION 0.99.9
-------------------------
-- maTrex() now offers support for scRepertoire combineTCR() output and not just single-cell objects alone.
-- CoNGAfy() function modified for additional meta variable support - will automatically check the duplicated clones for multiple values and condense with ";"
-- New format of encoder models to reduce size of package
-
-
-CHANGES IN VERSION 0.99.8
-------------------------
-- update to the database used in annotateDB(), cleaned data extensively
-- Correct CoNGAfy() function to fix mean-based reduction
-- Added edit distance parameter to annotateDB()
-
-CHANGES IN VERSION 0.99.7
-------------------------
-- Added one hot auto encoder to model options
-
-
-CHANGES IN VERSION 0.99.7
-------------------------
-
-* Dev/Maine pull - will update move towards new model architecture from here.
-
-
-CHANGES IN VERSION 0.99.6
-------------------------
-
-* After comparing the outputs of various calculations Trex offers - by far the best performing is returning the auto encoded values. Removed distance calculations and gene usage statistics. 
-* Expanding auto encoder models to use 288,090 unique TCRs and 455,779 unique TCRBs derived from both single-cell cohorts and bulk databases - VDJdb, McPAS, IEdb, and TRAdb.
-* Plan to add one-hot auto-encoder for sequence information and a database of TCRs
-
-
-CHANGES IN VERSION 0.99.5
-------------------------
-
-* CoNGAfy now can reduce the size of multiple dimensions using mean or distance. 
-* Moving the auto encoder distance back to cosine distance - per row the calculation will be 1-abs(cos())
-* Modified runTrex() to allow for generating layers without the edit distance (before it just errored out). 
-
-CHANGES IN VERSION 0.99.4
-------------------------
-
-* Added CoNGAfy() function to reduce RNA to a single cell per clonotype based on either mean expression or euclidean distance of the PCA.
-* Changed normalization for length-based distance calculation, was effectively halving the true distance, over calling neighbors when using thresholding. 
-* AA property normalization now uses Euclidean distance instead of cosine. Simplifies the normalization. 
-* Removed the multicore parallelization, after implementing the above (and removing the over calling issue) the code is substantially faster when using thresholding!
-
-
-CHANGES IN VERSION 0.99.3
-------------------------
-
-* Added clonalCommunity() function to allow for assignment and subsequent regression of feature space of groupings.
-* Changed neighbor.manager. Reverted the nearest neighbor proximation to the original version which only randomizes clones. Threshold detection changed to use expand.grid() instead of looping through all barcodes. 
-* Added support for aaReduction() and distReduction to the clonalCommunity() function
-* Added multicore parallelization to aaProperty() and distanceMatrix() function to speed up reduction. On an object of 3200 cells, sped the calculation up 8x.
-
-CHANGES IN VERSION 0.99.2
-------------------------
-
-* Added seed parameter to improve reproducibility 
-* Added clone.proportion parameter to select for the relative number of duplicates to allow into nearest neighbor evaluation
-* New internal function neighbor.manager - nearest neighbor approximation is now based on clone proportion (for clones), the remaining neighbors are randomized across unique clones in the vicinity of the clonotype/cell in question. 
-* Modified Mean approach for aa.property now references the correct columns in generating output frame and the cosine distance function
-* Changed internal function parameters to prevent the recursive issue.
-* added aaReduction() and distReduction() functions to get intermediate values for a layer. 
-
-
-CHANGES IN VERSION 0.99.1
-------------------------
-
-* Changed metric functions as it related to memory. Firstly, no more as.matrix() calls, this prevents upper ceiling on memory usage. 
-* Now distance is computed and from each row, a normalized comparison is made using the method for near call, which is then converted and stored as an edge list. This eliminates 3 matrices - pairwise distance matrix, normalized distance matrix and the adjacency matrix. Based on some benchmarking, this is a reduction in memory of around 3 (matrices) x 50. 
-*Edge list is now used to form multiplex graph object, with the list of edges across layers used to make supraAdjacency matrix.
-* AAProperties distance calculated using cosine using the philanthropy package - this returns a distance object instead of a Pearson correlation-based pairwise matrix, saves time and memory
-* Gene Usage Metrics return edge list directly, no intermediate adjacency matrix
+* Removed clonalCommunity() function

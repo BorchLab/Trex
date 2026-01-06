@@ -1,44 +1,55 @@
 Package: Trex
-Title: Methods for TCR single-cell embedding 
-Version: 0.99.12
-Date: 2024-10-08
+Title: T Cell Receptor Sequence Embedding for Single-Cell Analysis
+Version: 0.99.0
 Authors@R: c(
-    person(given = "Nick", family = "Borcherding", role = c("aut", "cre"), email = "ncborch@gmail.com"),
-    person(given = "Drew", family = "Voigt", role = c("aut"), email = "drewvoigt@gmail.com"))
-Description: Implementation of the Trex algorithm for single-cell embedding based on TCR sequences. The package includes a standalone function to encode TCR sequence information by amino acid properties or sequence order using tensorflow-based autoencoder. In addition, the package interacts with SingleCellExperiment or Seurat data objects. 
-License: MIT + file LICENSE 
+    person(given = "Nick", family = "Borcherding", role = c("aut", "cre"),
+           email = "ncborch@gmail.com", comment = c(ORCID = "0000-0003-0272-4232")),
+    person(given = "Drew", family = "Voigt", role = c("aut"),
+           email = "drewvoigt@gmail.com"))
+Description: This package implements methods for embedding single-cell data
+    based on T cell receptor (TCR) sequences. It provides standalone
+    functionality to encode TCR sequence information via amino acid properties
+    or sequence order through TensorFlow-based autoencoders. The package
+    supports both geometric transformations using BLOSUM62 matrices and deep
+    learning approaches with variational or classical autoencoders. Trex
+    integrates seamlessly with SingleCellExperiment and Seurat objects for
+    downstream analysis including weighted nearest neighbor approaches.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 LazyDataCompression: xz
 RoxygenNote: 7.3.2
-biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation, Sequencing
-Depends: 
-	R (>= 4.0)
-Imports: stringr, 
-	SeuratObject,
-	SingleCellExperiment,
-	rlang,
-	keras,
-	tensorflow,
-	reticulate, 
-	Matrix, 
-	matrixStats,
-	SummarizedExperiment,
-        stats,
-	stringdist, 
-	utils
-Suggests: 
-	knitr, 
-	rmarkdown, 
-	dplyr,
-	markdown,
-	BiocStyle,  
-	Seurat,
-	viridis,
-	patchwork,
-	ggplot2,
-	spelling,
-        testthat (>= 3.0.0)
+biocViews: Software, ImmunoOncology, SingleCell, Classification,
+    Annotation, Sequencing
+Depends:
+    R (>= 4.4.0)
+Imports:
+    basilisk,
+    immApex,
+    Matrix,
+    matrixStats,
+    reticulate,
+    rlang,
+    SingleCellExperiment,
+    SeuratObject,
+    stats,
+    stringdist,
+    stringr,
+    SummarizedExperiment,
+    utils
+Suggests:
+    BiocStyle,
+    dplyr,
+    ggplot2,
+    knitr,
+    markdown,
+    patchwork,
+    rmarkdown,
+    Seurat,
+    spelling,
+    testthat (>= 3.0.0),
+    viridis
+StagedInstall: no
 VignetteBuilder: knitr
 Language: en-US
 URL: https://github.com/BorchLab/Trex/
