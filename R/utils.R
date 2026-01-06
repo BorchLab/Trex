@@ -243,33 +243,6 @@ adding.DR <- function(sc, reduction, reduction.name) {
     return(sc)
 }
 
-#' Generate embedding using autoencoder model
-#'
-#' @param array.reshape Reshaped input array
-#' @param aa.model Loaded keras model
-#' @param encoder.input Input encoding type
-#'
-#' @return Predicted embedding vector
-#' @keywords internal
-#' @importFrom reticulate array_reshape
-#' @importFrom basilisk basiliskRun
-auto.embedder <- function(array.reshape, aa.model, encoder.input) {
-    array.reshape[is.na(array.reshape)] <- 0
-    score <- basiliskRun(
-        env = trex_env,
-        fun = function(model_path, input_data) {
-            keras <- reticulate::import("keras")
-            model <- keras$models$load_model(model_path, compile = FALSE)
-            input_array <- matrix(input_data, nrow = 1)
-            prediction <- model$predict(input_array, verbose = 0L)
-            return(as.vector(prediction))
-        },
-        model_path = aa.model,
-        input_data = array.reshape
-    )
-    return(score)
-}
-
 #' Filter object to cells with TCR data
 #'
 #' @param sc Single-cell object

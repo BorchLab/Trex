@@ -27,8 +27,6 @@ Imports:
     basilisk,
     immApex,
     Matrix,
-    matrixStats,
-    reticulate,
     rlang,
     SingleCellExperiment,
     SeuratObject,
